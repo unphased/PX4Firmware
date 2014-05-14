@@ -42,6 +42,7 @@
 #include <stdio.h>
 #include <poll.h>
 #include <termios.h>
+#include <fcntl.h>
 #include <assert.h>
 
 #include <uORB/uORB.h>
