@@ -54,7 +54,7 @@ int px4_simple_app_main(int argc, char *argv[])
 
 	/* subscribe to sensor_combined topic */
 	int sensor_sub_fd = orb_subscribe(ORB_ID(sensor_combined));
-	orb_set_interval(sensor_sub_fd, 1000);
+	orb_set_interval(sensor_sub_fd, 20);
 
 	/* advertise attitude topic */
 	struct vehicle_attitude_s att;
