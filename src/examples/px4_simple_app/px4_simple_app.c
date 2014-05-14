@@ -41,6 +41,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <poll.h>
+#include <termios.h>
 
 #include <uORB/uORB.h>
 #include <uORB/topics/sensor_combined.h>
@@ -51,6 +52,7 @@ __EXPORT int px4_simple_app_main(int argc, char *argv[]);
 int px4_simple_app_main(int argc, char *argv[])
 {
 	printf("Hello Sky!\n");
+	int uartfd = open("/dev/ttyS1", O_RDWR | O_NOCTTY); // TELEM2 port
 
 	/* subscribe to sensor_combined topic */
 	int sensor_sub_fd = orb_subscribe(ORB_ID(sensor_combined));
