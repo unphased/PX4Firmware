@@ -57,8 +57,6 @@ int px4_simple_app_main(int argc, char *argv[])
 	int uartfd = open("/dev/ttyS1", O_RDWR | O_NOCTTY); // TELEM2 port
 	assert(uartfd >= 0);
 
-	ASSERT(false);
-
 	/* subscribe to sensor_combined topic */
 	int sensor_sub_fd = orb_subscribe(ORB_ID(sensor_combined));
 	orb_set_interval(sensor_sub_fd, 20);
