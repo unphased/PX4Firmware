@@ -70,7 +70,7 @@ int px4_simple_app_main(int argc, char *argv[])
 	// clear ONLCR flag
 	config_ttyS1.c_oflag &= ~ONLCR;
 	// set baud rate
-	assert(cfsetispeed(&config_ttyS1, B460800) < 0 || cfsetospeed(&config_ttyS1, B460800) < 0);
+	assert(cfsetispeed(&config_ttyS1, B460800) >= 0 || cfsetospeed(&config_ttyS1, B460800) >= 0);
 	// go ahead and set the config i am setting up
 	assert((termios_state_ttyS1 = tcsetattr(uartfd, TCSANOW, &config_ttyS1)) >= 0);
 
