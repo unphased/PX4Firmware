@@ -53,30 +53,32 @@ __EXPORT int px4_simple_app_main(int argc, char *argv[]);
 
 int px4_simple_app_main(int argc, char *argv[])
 {
-	printf("Initializing /dev/ttyS1...\n");
+	printf("Initializing /dev/ttyS2...\n");
 
-	int uartfd = open("/dev/ttyS1", O_RDWR | O_NOCTTY); // TELEM2 port
+	int uartfd = open("/dev/ttyS2", O_RDWR | O_NOCTTY); // TELEM2 port
 	assert(uartfd >= 0);
 	// manage terminal settings
-	int termios_state_ttyS1;
-	struct termios existing_config_ttyS1;
+	int termios_state_ttyS2;
+	struct termios existing_config_ttyS2;
 	// get existing terminal config and store it.
-	assert((termios_state_ttyS1 = tcgetattr(uartfd, &existing_config_ttyS1)) >= 0);
-	struct termios config_ttyS1;
+	assert((termios_state_ttyS2 = tcgetattr(uartfd, &existing_config_ttyS2)) >= 0);
+	struct termios config_ttyS2;
 	// duplicate into the new config
-	tcgetattr(uartfd, &config_ttyS1);
-	// memcpy(config_ttyS1, existing_config_ttyS1);
+	tcgetattr(uartfd, &config_ttyS2);
+	// memcpy(config_ttyS2, existing_config_ttyS2);
 
 	// clear ONLCR flag
-	config_ttyS1.c_oflag &= ~ONLCR;
+	config_ttyS2.c_oflag &= ~ONLCR;
 	// set baud rate
-	assert(cfsetispeed(&config_ttyS1, B460800) >= 0 || cfsetospeed(&config_ttyS1, B460800) >= 0);
+	assert(cfsetispeed(&config_ttyS2, B115200) >= 0 || cfsetospeed(&config_ttyS2, B115200) >= 0);
 	// go ahead and set the config i am setting up
-	assert((termios_state_ttyS1 = tcsetattr(uartfd, TCSANOW, &config_ttyS1)) >= 0);
+	assert((termios_state_ttyS2 = tcsetattr(uartfd, TCSANOW, &config_ttyS2)) >= 0);
+	printf("Got to 76\n");
 
 	/* subscribe to sensor_combined topic */
 	int sensor_sub_fd = orb_subscribe(ORB_ID(sensor_combined));
-	orb_set_interval(sensor_sub_fd, 20);
+	orb_set_interval(sensor_sub_fd, 500);
+	printf("Got to 81\n");
 
 	/* one could wait for multiple topics with this technique, just using one here */
 	struct pollfd fds[] = {
@@ -88,9 +90,10 @@ int px4_simple_app_main(int argc, char *argv[])
 
 	int error_counter = 0;
 
-	for (int i = 0; i < 5000; i++) {
+	for (int i = 0; i < 50; i++) {
 		/* wait for sensor update of 1 file descriptor for 1000 ms (1 second) */
 		int poll_ret = poll(fds, 1, 1000);
+		printf("Got to 97 at i=%d\n", i);
 
 		/* handle the poll result */
 		if (poll_ret == 0) {
@@ -111,14 +114,17 @@ int px4_simple_app_main(int argc, char *argv[])
 				struct sensor_combined_s raw;
 				/* copy sensors raw data into local buffer */
 				orb_copy(ORB_ID(sensor_combined), sensor_sub_fd, &raw);
-				printf("[px4_simple_app] Accelerometer:\t%8.4f\t%8.4f\t%8.4f\n",
-					(double)raw.accelerometer_m_s2[0],
-					(double)raw.accelerometer_m_s2[1],
-					(double)raw.accelerometer_m_s2[2]);
-				fprintf(uartfd, "[px4_simple_app] -- on uart -- Accelerometer:\t%8.4f\t%8.4f\t%8.4f\n",
-					(double)raw.accelerometer_m_s2[0],
-					(double)raw.accelerometer_m_s2[1],
-					(double)raw.accelerometer_m_s2[2]);
+
+
+				char* buf = "abcdef\n";
+				// int printlen = sprintf(buf, "[px4_simple_app] -- on uart -- 
+				//* Accelerometer: "
+				// 	"\t%8.4f\t%8.4f\t%8.4f\n",
+				// 	(double)raw.accelerometer_m_s2[0],
+				// 	(double)raw.accelerometer_m_s2[1],
+				// 	(double)raw.accelerometer_m_s2[2]);
+				// write(uartfd, buf, 7);
+				dprintf(uartfd, "ok %s", buf);
 			}
 			/* there could be more file descriptors here, in the form like:
 			if (fds[1..n].revents & POLLIN) {}
@@ -127,7 +133,7 @@ int px4_simple_app_main(int argc, char *argv[])
 	}
 
 	// cleanup serial port
-	tcsetattr(uartfd, TCSANOW, &existing_config_ttyS1);
+	tcsetattr(uartfd, TCSANOW, &existing_config_ttyS2);
 	close(uartfd);
 
 	return 0;
