@@ -70,14 +70,14 @@ int px4_simple_app_main(int argc, char *argv[])
 	// clear ONLCR flag
 	config_ttyS2.c_oflag &= ~ONLCR;
 	// set baud rate
-	assert(cfsetispeed(&config_ttyS2, B115200) >= 0 || cfsetospeed(&config_ttyS2, B115200) >= 0);
+	assert(cfsetispeed(&config_ttyS2, B921600) >= 0 || cfsetospeed(&config_ttyS2, B921600) >= 0);
 	// go ahead and set the config i am setting up
 	assert((termios_state_ttyS2 = tcsetattr(uartfd, TCSANOW, &config_ttyS2)) >= 0);
 	printf("Got to 76\n");
 
 	/* subscribe to sensor_combined topic */
 	int sensor_sub_fd = orb_subscribe(ORB_ID(sensor_combined));
-	orb_set_interval(sensor_sub_fd, 500);
+	orb_set_interval(sensor_sub_fd, 2);
 	printf("Got to 81\n");
 
 	/* one could wait for multiple topics with this technique, just using one here */
@@ -90,7 +90,7 @@ int px4_simple_app_main(int argc, char *argv[])
 
 	int error_counter = 0;
 
-	for (int i = 0; i < 50; i++) {
+	for (int i = 0; i < 150; i++) {
 		/* wait for sensor update of 1 file descriptor for 1000 ms (1 second) */
 		int poll_ret = poll(fds, 1, 1000);
 		printf("Got to 97 at i=%d\n", i);
@@ -124,7 +124,10 @@ int px4_simple_app_main(int argc, char *argv[])
 				// 	(double)raw.accelerometer_m_s2[1],
 				// 	(double)raw.accelerometer_m_s2[2]);
 				// write(uartfd, buf, 7);
-				dprintf(uartfd, "ok %s", buf);
+				dprintf(uartfd, "Accelerometer: \t%8.4f\t%8.4f\t%8.4f\n",
+						(double)raw.accelerometer_m_s2[0],
+						(double)raw.accelerometer_m_s2[1],
+						(double)raw.accelerometer_m_s2[2]);
 			}
 			/* there could be more file descriptors here, in the form like:
 			if (fds[1..n].revents & POLLIN) {}
