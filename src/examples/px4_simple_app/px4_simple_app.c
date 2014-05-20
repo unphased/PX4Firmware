@@ -53,6 +53,11 @@ __EXPORT int px4_simple_app_main(int argc, char *argv[]);
 
 int px4_simple_app_main(int argc, char *argv[])
 {
+	printf("Autonomous serial controller initializing...\n");
+	printf("Args: \n");
+	for (int i=0; i<argc; ++i) {
+		printf("\t%d: %s\n", i, argv[i]);
+	}
 	printf("Initializing /dev/ttyS2...\n");
 
 	int uartfd = open("/dev/ttyS2", O_RDWR | O_NOCTTY); // TELEM2 port
