@@ -89,11 +89,14 @@ int px4_simple_app_main(int argc, char *argv[])
 	};
 
 	int error_counter = 0;
+	int byteswritten = 0;
 
-	for (int i = 0; i < 150; i++) {
+	for (int i = 0; i < 50000; i++) {
 		/* wait for sensor update of 1 file descriptor for 1000 ms (1 second) */
 		int poll_ret = poll(fds, 1, 1000);
-		printf("Got to 97 at i=%d\n", i);
+		if (!(i%1000)) {
+			printf("Written %d bytes, i=%d\n", byteswritten, i);
+		}
 
 		/* handle the poll result */
 		if (poll_ret == 0) {
@@ -124,7 +127,7 @@ int px4_simple_app_main(int argc, char *argv[])
 				// 	(double)raw.accelerometer_m_s2[1],
 				// 	(double)raw.accelerometer_m_s2[2]);
 				// write(uartfd, buf, 7);
-				dprintf(uartfd, "Accelerometer: \t%8.4f\t%8.4f\t%8.4f\n",
+				byteswritten += dprintf(uartfd, "Accelerometer: \t%8.4f\t%8.4f\t%8.4f\n",
 						(double)raw.accelerometer_m_s2[0],
 						(double)raw.accelerometer_m_s2[1],
 						(double)raw.accelerometer_m_s2[2]);
