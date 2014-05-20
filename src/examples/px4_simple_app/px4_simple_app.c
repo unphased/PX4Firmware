@@ -78,12 +78,10 @@ int px4_simple_app_main(int argc, char *argv[])
 	assert(cfsetispeed(&config_ttyS2, B921600) >= 0 || cfsetospeed(&config_ttyS2, B921600) >= 0);
 	// go ahead and set the config i am setting up
 	assert((termios_state_ttyS2 = tcsetattr(uartfd, TCSANOW, &config_ttyS2)) >= 0);
-	printf("Got to 76\n");
 
 	/* subscribe to sensor_combined topic */
 	int sensor_sub_fd = orb_subscribe(ORB_ID(sensor_combined));
 	orb_set_interval(sensor_sub_fd, 2);
-	printf("Got to 81\n");
 
 	/* one could wait for multiple topics with this technique, just using one here */
 	struct pollfd fds[] = {
