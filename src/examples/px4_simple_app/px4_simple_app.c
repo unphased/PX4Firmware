@@ -58,6 +58,17 @@ int px4_simple_app_main(int argc, char *argv[])
 	for (int i=0; i<argc; ++i) {
 		printf("\t%d: %s\n", i, argv[i]);
 	}
+	if (argv[1] != "start") {
+		// only support running from init script
+		return 1;
+	}
+}
+
+void simpleapp_task_trampoline(int argc, char *argv[]) {
+	simpleapp_task();
+}
+
+void simpleapp_task() {
 	printf("Initializing /dev/ttyS2...\n");
 
 	int uartfd = open("/dev/ttyS2", O_RDWR | O_NOCTTY); // TELEM2 port
@@ -144,6 +155,4 @@ int px4_simple_app_main(int argc, char *argv[])
 	// cleanup serial port
 	tcsetattr(uartfd, TCSANOW, &existing_config_ttyS2);
 	close(uartfd);
-
-	return 0;
 }
