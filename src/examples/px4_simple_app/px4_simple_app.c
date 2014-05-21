@@ -62,6 +62,7 @@ int px4_simple_app_main(int argc, char *argv[])
 		// only support running from init script
 		return 1;
 	}
+	int taskhandle = task_spawn_cmd("autopilot_blob", SCHED_DEFAULT, SCHED_PRIORITY_MAX - 20, 1024, &simpleapp_task_trampoline, nullptr);
 }
 
 void simpleapp_task_trampoline(int argc, char *argv[]) {
