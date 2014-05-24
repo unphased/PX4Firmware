@@ -476,6 +476,16 @@ MulticopterAttitudeControl::control_attitude(float dt)
 	float yaw_sp_move_rate = 0.0f;
 	bool publish_att_sp = false;
 
+	printf("att_ctrl::ctrl_att: dt=%g:\n"
+			"\t_manual_control_sp.x=%d\n"
+			"\t_manual_control_sp.y=%d\n"
+			"\t_manual_control_sp.z=%d\n",
+			dt,
+			_manual_control_sp.x,
+			_manual_control_sp.y,
+			_manual_control_sp.z
+	);
+
 	if (_v_control_mode.flag_control_manual_enabled) {
 		/* manual input, set or modify attitude setpoint */
 
