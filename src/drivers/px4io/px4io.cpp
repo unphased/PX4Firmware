@@ -1520,7 +1520,11 @@ PX4IO::io_get_raw_rc_input(rc_input_values &input_rc)
 	tick++;
 
 	if (!(tick % 30)) {
-		printf("PX4IO::io_get_raw_rc_input: tick=%d: ", tick);
+		printf("PX4IO::io_get_raw_rc_input: tick=%d, channels:", tick);
+		for (unsigned i = 0; i < channel_count; i++) {
+			printf(" #%d=%hu", i, input_rc.values[i]);
+		}
+		printf("\n");
 	}
 
 	return ret;
