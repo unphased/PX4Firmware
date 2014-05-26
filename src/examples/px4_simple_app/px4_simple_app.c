@@ -49,25 +49,10 @@
 #include <uORB/topics/sensor_combined.h>
 #include <uORB/topics/vehicle_attitude.h>
 
+// for spawning tasks
+#include <systemlib/systemlib.h>
+
 __EXPORT int px4_simple_app_main(int argc, char *argv[]);
-
-int px4_simple_app_main(int argc, char *argv[])
-{
-	printf("Autonomous serial controller initializing...\n");
-	printf("Args: \n");
-	for (int i=0; i<argc; ++i) {
-		printf("\t%d: %s\n", i, argv[i]);
-	}
-	if (argv[1] != "start") {
-		// only support running from init script
-		return 1;
-	}
-	int taskhandle = task_spawn_cmd("autopilot_blob", SCHED_DEFAULT, SCHED_PRIORITY_MAX - 20, 1024, &simpleapp_task_trampoline, nullptr);
-}
-
-void simpleapp_task_trampoline(int argc, char *argv[]) {
-	simpleapp_task();
-}
 
 void simpleapp_task() {
 	printf("Initializing /dev/ttyS2...\n");
@@ -157,3 +142,22 @@ void simpleapp_task() {
 	tcsetattr(uartfd, TCSANOW, &existing_config_ttyS2);
 	close(uartfd);
 }
+
+int simpleapp_task_trampoline(int argc, char *argv[]) {
+	simpleapp_task();
+}
+
+int px4_simple_app_main(int argc, char *argv[])
+{
+	printf("Autonomous serial controller initializing...\n");
+	printf("Args: \n");
+	for (int i=0; i<argc; ++i) {
+		printf("\t%d: %s\n", i, argv[i]);
+	}
+	if (argv[1] != "start") {
+		// only support running from init script
+		return 1;
+	}
+	int taskhandle = task_spawn_cmd("autopilot_blob", SCHED_DEFAULT, SCHED_PRIORITY_MAX - 20, 1024, &simpleapp_task_trampoline, NULL);
+}
+
