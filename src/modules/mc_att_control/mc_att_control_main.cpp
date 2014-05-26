@@ -477,9 +477,9 @@ MulticopterAttitudeControl::control_attitude(float dt)
 	bool publish_att_sp = false;
 
 	printf("att_ctrl::ctrl_att: dt=%g:\n"
-			"\t_manual_control_sp.x=%d\n"
-			"\t_manual_control_sp.y=%d\n"
-			"\t_manual_control_sp.z=%d\n",
+			"\t_manual_control_sp.x=%hu\n"
+			"\t_manual_control_sp.y=%hu\n"
+			"\t_manual_control_sp.z=%hu\n",
 			dt,
 			_manual_control_sp.x,
 			_manual_control_sp.y,
