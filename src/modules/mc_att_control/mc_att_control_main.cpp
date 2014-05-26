@@ -476,15 +476,29 @@ MulticopterAttitudeControl::control_attitude(float dt)
 	float yaw_sp_move_rate = 0.0f;
 	bool publish_att_sp = false;
 
-	printf("att_ctrl::ctrl_att: dt=%g:\n"
-			"\t_manual_control_sp.x=%hu\n"
-			"\t_manual_control_sp.y=%hu\n"
-			"\t_manual_control_sp.z=%hu\n",
+	static int tick = 0;
+	tick++;
+
+	if (!(tick % 100)) {
+	printf("att_ctrl::ctrl_att: tick=%d dt=%4.2f: "
+			"_manual_control_sp.xyzr, flaps; aux1,2,3,4; switches=%4.3f,%4.3f,%4.3f, %4.3f, %4.3f; %4.3f,%4.3f,%4.3f,%4.3f; %d,%d,%d,%d\n",
+			tick,
 			dt,
 			_manual_control_sp.x,
 			_manual_control_sp.y,
-			_manual_control_sp.z
+			_manual_control_sp.z,
+			_manual_control_sp.r,
+			_manual_control_sp.flaps,
+			_manual_control_sp.aux1,
+			_manual_control_sp.aux2,
+			_manual_control_sp.aux3,
+			_manual_control_sp.aux4,
+			_manual_control_sp.mode_switch,
+			_manual_control_sp.return_switch,
+			_manual_control_sp.posctl_switch,
+			_manual_control_sp.loiter_switch
 	);
+	}
 
 	if (_v_control_mode.flag_control_manual_enabled) {
 		/* manual input, set or modify attitude setpoint */
