@@ -1516,6 +1516,13 @@ PX4IO::io_get_raw_rc_input(rc_input_values &input_rc)
 		input_rc.values[i] = regs[prolog + i];
 	}
 
+	static int tick = 0;
+	tick++;
+
+	if (!(tick % 30)) {
+		printf("PX4IO::io_get_raw_rc_input: tick=%d: ", tick);
+	}
+
 	return ret;
 }
 

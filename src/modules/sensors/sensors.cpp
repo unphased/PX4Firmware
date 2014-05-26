@@ -1503,29 +1503,6 @@ Sensors::rc_poll()
 			manual.return_switch = get_rc_sw2pos_position(RETURN, _parameters.rc_return_th, _parameters.rc_return_inv);
 			manual.loiter_switch = get_rc_sw2pos_position(LOITER, _parameters.rc_loiter_th, _parameters.rc_loiter_inv);
 
-			static int tick = 0;
-			tick++;
-
-			if (!(tick % 100)) {
-			printf("sensors::rc_poll: tick=%d: "
-					"manualsetpoint.xyzr, flaps; aux1,2,3,4; switches=%4.3f,%4.3f,%4.3f, %4.3f, %4.3f; %4.3f,%4.3f,%4.3f,%4.3f; %d,%d,%d,%d\n",
-					tick,
-					manual.x,
-					manual.y,
-					manual.z,
-					manual.r,
-					manual.flaps,
-					manual.aux1,
-					manual.aux2,
-					manual.aux3,
-					manual.aux4,
-					manual.mode_switch,
-					manual.return_switch,
-					manual.posctl_switch,
-					manual.loiter_switch
-			);
-			}
-
 			/* publish manual_control_setpoint topic */
 			if (_manual_control_pub > 0) {
 				orb_publish(ORB_ID(manual_control_setpoint), _manual_control_pub, &manual);
