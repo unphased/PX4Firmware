@@ -1507,10 +1507,9 @@ Sensors::rc_poll()
 			tick++;
 
 			if (!(tick % 100)) {
-			printf("att_ctrl::ctrl_att: tick=%d dt=%4.2f: "
+			printf("sensors::rc_poll: tick=%d: "
 					"manualsetpoint.xyzr, flaps; aux1,2,3,4; switches=%4.3f,%4.3f,%4.3f, %4.3f, %4.3f; %4.3f,%4.3f,%4.3f,%4.3f; %d,%d,%d,%d\n",
 					tick,
-					dt,
 					manual.x,
 					manual.y,
 					manual.z,
