@@ -28,18 +28,19 @@ MODULES		+= drivers/hmc5883
 MODULES		+= drivers/ms5611
 MODULES		+= drivers/mb12xx
 MODULES		+= drivers/sf0x
+MODULES		+= drivers/ll40ls
 MODULES		+= drivers/gps
 MODULES		+= drivers/hil
 MODULES		+= drivers/hott/hott_telemetry
 MODULES		+= drivers/hott/hott_sensors
 MODULES		+= drivers/blinkm
-MODULES		+= drivers/roboclaw
 MODULES		+= drivers/airspeed
 MODULES		+= drivers/ets_airspeed
 MODULES		+= drivers/meas_airspeed
 MODULES		+= drivers/frsky_telemetry
 MODULES		+= modules/sensors
 MODULES		+= drivers/mkblctrl
+MODULES		+= drivers/pca8574
 
 
 # Needs to be burned to the ground and re-written; for now,
@@ -79,7 +80,7 @@ MODULES		+= modules/gpio_led
 #
 MODULES		+= modules/attitude_estimator_ekf
 MODULES		+= modules/attitude_estimator_so3
-MODULES		+= modules/fw_att_pos_estimator
+MODULES		+= modules/ekf_att_pos_estimator
 MODULES		+= modules/position_estimator_inav
 MODULES		+= examples/flow_position_estimator
 
@@ -119,8 +120,8 @@ LIBRARIES	+= lib/mathlib/CMSIS
 MODULES		+= lib/mathlib
 MODULES		+= lib/mathlib/math/filter
 MODULES		+= lib/ecl
-MODULES		+= lib/external_lgpl
 MODULES		+= lib/geo
+MODULES		+= lib/geo_lookup
 MODULES		+= lib/conversion
 MODULES		+= lib/launchdetection
 

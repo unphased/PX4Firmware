@@ -39,6 +39,7 @@
 #include <nuttx/config.h>
 
 #include <sys/types.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <assert.h>
@@ -203,12 +204,8 @@ PX4IO_Uploader::upload(const char *filenames[])
 
 		if (bl_rev <= 2) {
 			ret = verify_rev2(fw_size);
-		} else if(bl_rev == 3) {
-			ret = verify_rev3(fw_size);
 		} else {
-			/* verify rev 4 and higher still uses the same approach and
-			 * every version *needs* to be verified.
-			 */
+			/* verify rev 3 and higher. Every version *needs* to be verified. */
 			ret = verify_rev3(fw_size);
 		}
 
@@ -240,9 +237,9 @@ PX4IO_Uploader::upload(const char *filenames[])
 	close(_io_fd);
 	_io_fd = -1;
 
-        // sleep for enough time for the IO chip to boot. This makes
-        // forceupdate more reliably startup IO again after update
-        up_udelay(100*1000);
+	// sleep for enough time for the IO chip to boot. This makes
+	// forceupdate more reliably startup IO again after update
+	up_udelay(100*1000);
 
 	return ret;
 }
@@ -275,14 +272,14 @@ PX4IO_Uploader::recv(uint8_t &c, unsigned timeout)
 int
 PX4IO_Uploader::recv(uint8_t *p, unsigned count)
 {
+	int ret;
 	while (count--) {
-		int ret = recv(*p++, 5000);
+		ret = recv(*p++, 5000);
 
 		if (ret != OK)
-			return ret;
+			break;
 	}
-
-	return OK;
+	return ret;
 }
 
 void
@@ -313,21 +310,19 @@ PX4IO_Uploader::send(uint8_t c)
 #endif
 	if (write(_io_fd, &c, 1) != 1)
 		return -errno;
-
 	return OK;
 }
 
 int
 PX4IO_Uploader::send(uint8_t *p, unsigned count)
 {
+	int ret;
 	while (count--) {
-		int ret = send(*p++);
-
+		ret = send(*p++);
 		if (ret != OK)
-			return ret;
+			break;
 	}
-
-	return OK;
+	return ret;
 }
 
 int
@@ -413,10 +408,19 @@ static int read_with_retry(int fd, void *buf, size_t n)
 int
 PX4IO_Uploader::program(size_t fw_size)
 {
-	uint8_t	file_buf[PROG_MULTI_MAX];
+	uint8_t	*file_buf;
 	ssize_t count;
 	int ret;
 	size_t sent = 0;
+
+	file_buf = new uint8_t[PROG_MULTI_MAX];
+	if (!file_buf) {
+		log("Can't allocate program buffer");
+		return -ENOMEM;
+	}
+
+	ASSERT((fw_size & 3) == 0);
+	ASSERT((PROG_MULTI_MAX & 3) == 0);
 
 	log("programming %u bytes...", (unsigned)fw_size);
 
@@ -425,8 +429,8 @@ PX4IO_Uploader::program(size_t fw_size)
 	while (sent < fw_size) {
 		/* get more bytes to program */
 		size_t n = fw_size - sent;
-		if (n > sizeof(file_buf)) {
-			n = sizeof(file_buf);
+		if (n > PROG_MULTI_MAX) {
+			n = PROG_MULTI_MAX;
 		}
 		count = read_with_retry(_fw_fd, file_buf, n);
 
@@ -436,29 +440,26 @@ PX4IO_Uploader::program(size_t fw_size)
 			    (unsigned)sent,
 			    (int)count,
 			    (int)errno);
+			ret = -errno;
+			break;
 		}
-
-		if (count == 0)
-			return OK;
 
 		sent += count;
 
-		if (count < 0)
-			return -errno;
-
-		ASSERT((count % 4) == 0);
-
 		send(PROTO_PROG_MULTI);
 		send(count);
-		send(&file_buf[0], count);
+		send(file_buf, count);
 		send(PROTO_EOC);
 
 		ret = get_sync(1000);
 
-		if (ret != OK)
-			return ret;
+		if (ret != OK) {
+			break;
+		}
 	}
-	return OK;
+
+	delete [] file_buf;
+	return ret;
 }
 
 int

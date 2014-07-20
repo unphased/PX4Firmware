@@ -44,6 +44,7 @@
 #include <termios.h>
 #include <fcntl.h>
 #include <assert.h>
+#include <string.h>
 
 #include <uORB/uORB.h>
 #include <uORB/topics/sensor_combined.h>

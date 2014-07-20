@@ -72,7 +72,7 @@ int do_mag_calibration(int mavlink_fd)
 	uint64_t calibration_interval = 45 * 1000 * 1000;
 
 	/* maximum 500 values */
-	const unsigned int calibration_maxcount = 500;
+	const unsigned int calibration_maxcount = 240;
 	unsigned int calibration_counter;
 
 	struct mag_scale mscale_null = {
@@ -121,6 +121,20 @@ int do_mag_calibration(int mavlink_fd)
 
 		if (x == NULL || y == NULL || z == NULL) {
 			mavlink_log_critical(mavlink_fd, "ERROR: out of memory");
+
+			/* clean up */
+			if (x != NULL) {
+				free(x);
+			}
+
+			if (y != NULL) {
+				free(y);
+			}
+
+			if (z != NULL) {
+				free(z);
+			}
+
 			res = ERROR;
 			return res;
 		}
@@ -131,7 +145,7 @@ int do_mag_calibration(int mavlink_fd)
 	}
 
 	if (res == OK) {
-		int sub_mag = orb_subscribe(ORB_ID(sensor_mag));
+		int sub_mag = orb_subscribe(ORB_ID(sensor_mag0));
 		struct mag_report mag;
 
 		/* limit update rate to get equally spaced measurements over time (in ms) */
@@ -156,7 +170,7 @@ int do_mag_calibration(int mavlink_fd)
 			int poll_ret = poll(fds, 1, 1000);
 
 			if (poll_ret > 0) {
-				orb_copy(ORB_ID(sensor_mag), sub_mag, &mag);
+				orb_copy(ORB_ID(sensor_mag0), sub_mag, &mag);
 
 				x[calibration_counter] = mag.x;
 				y[calibration_counter] = mag.y;
