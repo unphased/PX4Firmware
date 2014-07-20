@@ -120,7 +120,7 @@ void simpleapp_task() {
 				orb_copy(ORB_ID(sensor_combined), sensor_sub_fd, &raw);
 
 
-				char* buf = "abcdef\n";
+				// char* buf = "abcdef\n";
 				// int printlen = sprintf(buf, "[px4_simple_app] -- on uart -- 
 				//* Accelerometer: "
 				// 	"\t%8.4f\t%8.4f\t%8.4f\n",
@@ -159,6 +159,7 @@ int px4_simple_app_main(int argc, char *argv[])
 		// only support running from init script
 		return 1;
 	}
-	int taskhandle = task_spawn_cmd("autopilot_blob", SCHED_DEFAULT, SCHED_PRIORITY_MAX - 20, 1024, &simpleapp_task_trampoline, NULL);
+	task_spawn_cmd("autopilot_blob", SCHED_DEFAULT, SCHED_PRIORITY_MAX - 20, 1024, &simpleapp_task_trampoline, NULL);
+	return 0;
 }
 
