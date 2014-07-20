@@ -1557,7 +1557,7 @@ PX4IO::io_get_raw_rc_input(rc_input_values &input_rc)
 	static int tick = 0;
 	tick++;
 
-	if (!(tick % 5)) {
+	if (!(tick % 200)) {
 		printf("PX4IO::io_get_raw_rc_input: tick=%d, #chan=%d, channels:", tick, channel_count);
 		for (unsigned i = 0; i < channel_count; i++) {
 			printf(" #%d=%hu", i, input_rc.values[i]);
