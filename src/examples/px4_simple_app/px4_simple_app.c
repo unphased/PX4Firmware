@@ -41,41 +41,64 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <poll.h>
+#include <termios.h>
+#include <fcntl.h>
+#include <assert.h>
 #include <string.h>
 
 #include <uORB/uORB.h>
 #include <uORB/topics/sensor_combined.h>
 #include <uORB/topics/vehicle_attitude.h>
 
+// for spawning tasks
+#include <systemlib/systemlib.h>
+
 __EXPORT int px4_simple_app_main(int argc, char *argv[]);
 
-int px4_simple_app_main(int argc, char *argv[])
-{
-	printf("Hello Sky!\n");
+void simpleapp_task() {
+	printf("Initializing /dev/ttyS2...\n");
+
+	int uartfd = open("/dev/ttyS2", O_RDWR | O_NOCTTY); // TELEM2 port
+	assert(uartfd >= 0);
+	// manage terminal settings
+	int termios_state_ttyS2;
+	struct termios existing_config_ttyS2;
+	// get existing terminal config and store it.
+	assert((termios_state_ttyS2 = tcgetattr(uartfd, &existing_config_ttyS2)) >= 0);
+	struct termios config_ttyS2;
+	// duplicate into the new config
+	tcgetattr(uartfd, &config_ttyS2);
+	// memcpy(config_ttyS2, existing_config_ttyS2);
+
+	// clear ONLCR flag
+	config_ttyS2.c_oflag &= ~ONLCR;
+	// set baud rate
+	assert(cfsetispeed(&config_ttyS2, B921600) >= 0 || cfsetospeed(&config_ttyS2, B921600) >= 0);
+	// go ahead and set the config i am setting up
+	assert((termios_state_ttyS2 = tcsetattr(uartfd, TCSANOW, &config_ttyS2)) >= 0);
 
 	/* subscribe to sensor_combined topic */
 	int sensor_sub_fd = orb_subscribe(ORB_ID(sensor_combined));
-	orb_set_interval(sensor_sub_fd, 1000);
-
-	/* advertise attitude topic */
-	struct vehicle_attitude_s att;
-	memset(&att, 0, sizeof(att));
-	orb_advert_t att_pub = orb_advertise(ORB_ID(vehicle_attitude), &att);
+	orb_set_interval(sensor_sub_fd, 2);
 
 	/* one could wait for multiple topics with this technique, just using one here */
 	struct pollfd fds[] = {
 		{ .fd = sensor_sub_fd,   .events = POLLIN },
 		/* there could be more file descriptors here, in the form like:
-		 * { .fd = other_sub_fd,   .events = POLLIN },
-		 */
+		{ .fd = other_sub_fd,   .events = POLLIN },
+		*/
 	};
 
 	int error_counter = 0;
+	int byteswritten = 0;
 
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 50000; i++) {
 		/* wait for sensor update of 1 file descriptor for 1000 ms (1 second) */
 		int poll_ret = poll(fds, 1, 1000);
-	 
+		if (!(i%1000)) {
+			printf("Written %d bytes, i=%d\n", byteswritten, i);
+		}
+
 		/* handle the poll result */
 		if (poll_ret == 0) {
 			/* this means none of our providers is giving us data */
@@ -89,28 +112,54 @@ int px4_simple_app_main(int argc, char *argv[])
 			}
 			error_counter++;
 		} else {
-	 
+
 			if (fds[0].revents & POLLIN) {
 				/* obtained data for the first file descriptor */
 				struct sensor_combined_s raw;
 				/* copy sensors raw data into local buffer */
 				orb_copy(ORB_ID(sensor_combined), sensor_sub_fd, &raw);
-				printf("[px4_simple_app] Accelerometer:\t%8.4f\t%8.4f\t%8.4f\n",
-					(double)raw.accelerometer_m_s2[0],
-					(double)raw.accelerometer_m_s2[1],
-					(double)raw.accelerometer_m_s2[2]);
 
-				/* set att and publish this information for other apps */
-				att.roll = raw.accelerometer_m_s2[0];
-				att.pitch = raw.accelerometer_m_s2[1];
-				att.yaw = raw.accelerometer_m_s2[2];
-				orb_publish(ORB_ID(vehicle_attitude), att_pub, &att);
+
+				// char* buf = "abcdef\n";
+				// int printlen = sprintf(buf, "[px4_simple_app] -- on uart -- 
+				//* Accelerometer: "
+				// 	"\t%8.4f\t%8.4f\t%8.4f\n",
+				// 	(double)raw.accelerometer_m_s2[0],
+				// 	(double)raw.accelerometer_m_s2[1],
+				// 	(double)raw.accelerometer_m_s2[2]);
+				// write(uartfd, buf, 7);
+				byteswritten += dprintf(uartfd, "Accelerometer: \t%8.4f\t%8.4f\t%8.4f\n",
+						(double)raw.accelerometer_m_s2[0],
+						(double)raw.accelerometer_m_s2[1],
+						(double)raw.accelerometer_m_s2[2]);
 			}
 			/* there could be more file descriptors here, in the form like:
-			 * if (fds[1..n].revents & POLLIN) {}
-			 */
+			if (fds[1..n].revents & POLLIN) {}
+			*/
 		}
 	}
 
+	// cleanup serial port
+	tcsetattr(uartfd, TCSANOW, &existing_config_ttyS2);
+	close(uartfd);
+}
+
+int simpleapp_task_trampoline(int argc, char *argv[]) {
+	simpleapp_task();
+}
+
+int px4_simple_app_main(int argc, char *argv[])
+{
+	printf("Autonomous serial controller initializing...\n");
+	printf("Args: \n");
+	for (int i=0; i<argc; ++i) {
+		printf("\t%d: %s\n", i, argv[i]);
+	}
+	if (argv[1] != "start") {
+		// only support running from init script
+		return 1;
+	}
+	task_spawn_cmd("autopilot_blob", SCHED_DEFAULT, SCHED_PRIORITY_MAX - 20, 1024, &simpleapp_task_trampoline, NULL);
 	return 0;
 }
+
