@@ -81,7 +81,7 @@ void simpleapp_task() {
 
 	/* subscribe to sensor_combined topic */
 	int sensor_sub_fd = orb_subscribe(ORB_ID(sensor_combined));
-	orb_set_interval(sensor_sub_fd, 160);
+	orb_set_interval(sensor_sub_fd, 16);
 
 	/* one could wait for multiple topics with this technique, just using one here */
 	struct pollfd fds[] = {
