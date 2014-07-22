@@ -147,6 +147,7 @@ void simpleapp_task() {
 }
 
 int simpleapp_task_trampoline(int argc, char *argv[]) {
+	printf("spawning inner");
 	simpleapp_task();
 }
 
@@ -157,14 +158,16 @@ int px4_simple_app_main(int argc, char *argv[])
 	for (int i=0; i<argc; ++i) {
 		printf("\t%d: %s\n", i, argv[i]);
 	}
-	if (strcmp(argv[1], "start") != 0) {
+	if (strncmp(argv[1], "start", 5) != 0) {
 		// only support running from init script
 		printf("Need to pass start in order to actually start\n");
 		return 1;
 	}
-	printf("spawning");
-	task_spawn_cmd("autopilot_blob", SCHED_DEFAULT, SCHED_PRIORITY_MAX - 20, 1024, &simpleapp_task_trampoline, NULL);
-	printf("done spawning, exiting");
+	printf("running\n");
+	// task_spawn_cmd("autopilot_blob", SCHED_DEFAULT, SCHED_PRIORITY_MAX - 40, 
+	//1024, (main_t)&simpleapp_task_trampoline, NULL);
+	simpleapp_task();
+	printf("done running, exiting\n");
 	return 0;
 }
 

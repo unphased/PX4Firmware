@@ -559,7 +559,7 @@ then
 
 	# Start the custom onboard application (it's initially called 
 	# px4_simple_app)
-	px4_simple_app start
+	px4_simple_app start &
 
 	#
 	# Generic setup (autostart ID not found)
