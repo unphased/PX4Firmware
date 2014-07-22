@@ -77,9 +77,11 @@ void simpleapp_task() {
 	// go ahead and set the config i am setting up
 	assert((termios_state_ttyS2 = tcsetattr(uartfd, TCSANOW, &config_ttyS2)) >= 0);
 
+	dprintf(uartfd, "Spitting crap over uart just to debug it\n");
+
 	/* subscribe to sensor_combined topic */
 	int sensor_sub_fd = orb_subscribe(ORB_ID(sensor_combined));
-	orb_set_interval(sensor_sub_fd, 2);
+	orb_set_interval(sensor_sub_fd, 160);
 
 	/* one could wait for multiple topics with this technique, just using one here */
 	struct pollfd fds[] = {
@@ -155,11 +157,14 @@ int px4_simple_app_main(int argc, char *argv[])
 	for (int i=0; i<argc; ++i) {
 		printf("\t%d: %s\n", i, argv[i]);
 	}
-	if (argv[1] != "start") {
+	if (strcmp(argv[1], "start") != 0) {
 		// only support running from init script
+		printf("Need to pass start in order to actually start\n");
 		return 1;
 	}
+	printf("spawning");
 	task_spawn_cmd("autopilot_blob", SCHED_DEFAULT, SCHED_PRIORITY_MAX - 20, 1024, &simpleapp_task_trampoline, NULL);
+	printf("done spawning, exiting");
 	return 0;
 }
 
