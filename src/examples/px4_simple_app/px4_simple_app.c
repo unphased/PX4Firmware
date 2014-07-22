@@ -146,11 +146,6 @@ void simpleapp_task() {
 	close(uartfd);
 }
 
-int simpleapp_task_trampoline(int argc, char *argv[]) {
-	printf("spawning inner");
-	simpleapp_task();
-}
-
 int px4_simple_app_main(int argc, char *argv[])
 {
 	printf("Autonomous serial controller initializing...\n");
